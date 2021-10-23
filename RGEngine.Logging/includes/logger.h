@@ -1,8 +1,4 @@
-﻿#pragma once
-
 #pragma once
-
-#include "core/error_codes.h"
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -10,64 +6,53 @@
 #include <time.h>
 #include <stdint.h>
 
+#ifndef MAX_LOG_SINKS
+#define MAX_LOG_SINKS 8
+#endif // !MAX_LOG_SINKS
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+enum log_levels { LEVEL_TRACE, LEVEL_DEBUG, LEVEL_INFO, LEVEL_WARN, LEVEL_ERROR, LEVEL_FATAL };
+enum error_codes { SUCCESS, ERROR_TO_MANY_SINKS, ERROR_FILE_IS_NULL, ERROR_PTR_IS_NULL };
+
 struct logger_event
 {
-	va_list ap;
+	va_list arguments;
 	const char* fmt;
 	const char* file;
-	struct tm* time;
-	void* udata;
-	int line;
-	int level;
+	void* data;
+	struct tm time;
+	int32_t level;
+	int32_t line;
 };
 
-typedef void (*logger_log_fn)(struct logger_event* event);
-typedef void (*logger_lock_fn)(bool should_lock, void* data);
+//typedef void (*logger_log_fn)(struct logger_event* event);
+typedef void (*logger_lock_fn)(void* data);
+typedef void (*logger_unlock_fn)(void* data);
 
-enum log_levels { LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARN, LOG_ERROR, LOG_FATAL };
-
-/// <summary>
-/// gets the log level name of specified level
-/// </summary>
-/// <param name="level">: to get the name from</param>
-/// <returns>pointer to initialize</returns>
-const char* logger_level_string(enum log_levels level);
+struct sink
+{
+	void* data;
+	enum log_levels level;
+};
 
 /// <summary>
-/// sets a lock function to lock specified data when calling from multiple threads
+/// initialize logger, should only be called once and not be used for multithreaded code
 /// </summary>
-/// <param name="callback">: function, called to lock specified data when logging</param>
-/// <param name="data">: to lock, passed to callback when called</param>
-void logger_set_lock(logger_lock_fn callback, void* data);
+/// <param name="level">: of when to call the callback</param>
+void logger_init(enum log_levels level);
 
 /// <summary>
-/// sets log level, any logging call with this or higher level will be logged, anything lower will be ignored
+/// initialize logger, should only be called once should be used for multithreaded code
 /// </summary>
-/// <param name="level">: to set</param>
-void logger_set_level(enum log_levels level);
+/// <param name="level">: of when to call the callback</param>
+void logger_init_threaded(enum log_levels level, logger_lock_fn lock_fn, logger_unlock_fn unlock_fn);
 
-/// <summary>
-/// if quiet prevents logging to stderr
-/// </summary>
-/// <param name="enable">: quiet or not</param>
-void logger_set_quiet(bool enable);
-
-/// <summary>
-/// adds callback to be called when logging
-/// </summary>
-/// <param name="callback">: function to be called</param>
-/// <param name="data">:  to log, passed to callback</param>
-/// <param name="level">:  of when to call the callback</param>
-/// <returns>error code or SUCCESS</returns>
-enum error_codes logger_add_callback(logger_log_fn callback, void* data, enum log_levels level);
-
-/// <summary>
-/// adds file to log to when logging
-/// </summary>
-/// <param name="file">: pointer to log to</param>
-/// <param name="level">:  of when to log to the file</param>
-/// <returns>error code or SUCCESS</returns>
-enum error_codes logger_add_file(FILE* file, enum log_levels level);
+enum error_codes logger_add_console_sink(void* data, enum log_levels level);
+enum error_codes logger_add_file_sink(FILE* file, enum log_levels level);
+enum error_codes logger_set_level(enum log_levels level);
 
 /// <summary>
 /// log function, calls all callbacks and logs to stdout
@@ -83,34 +68,38 @@ void logger_log(enum log_levels level, const char* file, int32_t line, const cha
 /// utility log macro calls log_log with predefined level, file and line
 /// </summary>
 /// <param name="...">: variadic parameter to pass log string and values to pass to log string</param>
-#define log_trace(...) logger_log(LOG_TRACE, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_TRACE(...) logger_log(LEVEL_TRACE, __FILE__, __LINE__, __VA_ARGS__)
 
 /// <summary>
 /// utility log macro calls log_log with predefined level, file and line
 /// </summary>
 /// <param name="...">: variadic parameter to pass log string and values to pass to log string</param>
-#define log_debug(...) logger_log(LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_DEBUG(...) logger_log(LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
 
 /// <summary>
 /// utility log macro calls log_log with predefined level, file and line
 /// </summary>
 /// <param name="...">: variadic parameter to pass log string and values to pass to log string</param>
-#define log_info(...)  logger_log(LOG_INFO,  __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_INFO(...)  logger_log(LEVEL_INFO,  __FILE__, __LINE__, __VA_ARGS__)
 
 /// <summary>
 /// utility log macro calls log_log with predefined level, file and line
 /// </summary>
 /// <param name="...">: variadic parameter to pass log string and values to pass to log string</param>
-#define log_warn(...)  logger_log(LOG_WARN,  __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_WARN(...)  logger_log(LEVEL_WARN,  __FILE__, __LINE__, __VA_ARGS__)
 
 /// <summary>
 /// utility log macro calls log_log with predefined level, file and line
 /// </summary>
 /// <param name="...">: variadic parameter to pass log string and values to pass to log string</param>
-#define log_error(...) logger_log(LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_ERROR(...) logger_log(LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__)
 
 /// <summary>
 /// utility log macro calls log_log with predefined level, file and line
 /// </summary>
 /// <param name="...">: variadic parameter to pass log string and values to pass to log string</param>
-#define log_fatal(...) logger_log(LOG_FATAL, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_FATAL(...) logger_log(LEVEL_FATAL, __FILE__, __LINE__, __VA_ARGS__)
+
+#ifdef __cplusplus
+}
+#endif
