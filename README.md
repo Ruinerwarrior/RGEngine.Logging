@@ -1,4 +1,10 @@
 # RGEngine.Logging
+Simple logging library of RGEngine
+
+## Features
+- Multiple sinks to log to (files, console)
+- Filter logging according to log level
+- ANSI colouring of different log levels to console
 
 ## Examples
 ### Create console logger
