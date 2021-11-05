@@ -28,7 +28,6 @@ struct logger_event
 	int32_t line;
 };
 
-//typedef void (*logger_log_fn)(struct logger_event* event);
 typedef void (*logger_lock_fn)(void* data);
 typedef void (*logger_unlock_fn)(void* data);
 

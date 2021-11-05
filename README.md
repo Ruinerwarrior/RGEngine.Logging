@@ -10,7 +10,7 @@ Simple logging library of RGEngine
 ### Create console logger
 With this example all log calls above ```LEVEL_TRACE``` will be logged to stderr.
 ```c
-#include "logger.h"
+#include "RGEngine/logger.h"
 
 int main()
 {
@@ -33,7 +33,7 @@ int main()
 
 ### Create console and file logger
 ```c
-#include "logger.h"
+#include "RGEngine/logger.h"
 
 int main() 
 {

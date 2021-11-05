@@ -4,6 +4,6 @@
 cmake_minimum_required (VERSION 3.8)
 
 # Add source to this project's executable.
-add_library(RGEngine.Logging STATIC "src/logger.c" "includes/logger.h")
+add_library(RGEngine.Logging STATIC "src/logger.c" "includes/RGEngine/logger.h")
 
 target_include_directories(RGEngine.Logging PUBLIC "includes")
