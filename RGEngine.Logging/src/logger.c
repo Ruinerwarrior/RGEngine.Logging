@@ -42,7 +42,7 @@ static void on_log_to_console(struct logger_event* event)
 	);
 #else
 	fprintf(
-		event->udata,
+		event->data,
 		"%s %-5s %s:%d: ",
 		buf,
 		level_strings[event->level],
