@@ -1,3 +1,7 @@
+![example workflow](https://github.com/Ruinerwarrior/RGEngine.Logging/actions/workflows/windows.yml/badge.svg)
+![example workflow](https://github.com/Ruinerwarrior/RGEngine.Logging/actions/workflows/macOs.yml/badge.svg)
+![example workflow](https://github.com/Ruinerwarrior/RGEngine.Logging/actions/workflows/ubuntu.yml/badge.svg)
+
 # RGEngine.Logging
 Simple logging library of RGEngine
 
