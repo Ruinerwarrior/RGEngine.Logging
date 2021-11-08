@@ -12,7 +12,7 @@ static const char* level_colors[] = {
 };
 #endif
 
-static struct
+struct log
 {
 	struct sink console_sinks[MAX_LOG_SINKS];
 	struct sink file_sinks[MAX_LOG_SINKS];
@@ -24,7 +24,9 @@ static struct
 	uint16_t console_sink_count;
 	uint16_t file_sink_count;
 	enum log_levels level;
-} log;
+};
+
+static struct log log;
 
 static void on_log_to_console(struct logger_event* event)
 {
@@ -167,6 +169,8 @@ enum error_codes logger_add_file_sink(FILE* file, enum log_levels level)
 	log.file_sinks[log.file_sink_count].level = level;
 	log.file_sinks[log.file_sink_count].data = file;
 	log.file_sink_count++;
+
+	return SUCCESS;
 }
 
 enum error_codes logger_add_console_sink(void* data, enum log_levels level)
@@ -180,6 +184,8 @@ enum error_codes logger_add_console_sink(void* data, enum log_levels level)
 	log.console_sinks[log.console_sink_count].level = level;
 	log.console_sinks[log.console_sink_count].data = data;
 	log.console_sink_count++;
+
+	return SUCCESS;
 }
 
 void logger_log(enum log_levels level, const char* file, int32_t line, const char* fmt, ...)
