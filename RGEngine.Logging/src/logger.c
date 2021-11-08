@@ -12,7 +12,7 @@ static const char* level_colors[] = {
 };
 #endif
 
-struct log
+struct logger
 {
 	struct sink console_sinks[MAX_LOG_SINKS];
 	struct sink file_sinks[MAX_LOG_SINKS];
@@ -26,7 +26,7 @@ struct log
 	enum log_levels level;
 };
 
-static struct log log;
+static struct logger log;
 
 static void on_log_to_console(struct logger_event* event)
 {
