@@ -26,7 +26,7 @@ struct logger
 	enum log_levels level;
 };
 
-static struct logger log;
+static struct logger logger;
 
 static void on_log_to_console(struct logger_event* event)
 {
@@ -76,11 +76,11 @@ static void on_log_to_file(struct logger_event* event)
 
 static void on_log(struct logger_event* event)
 {
-	if (event->level >= log.level)
+	if (event->level >= logger.level)
 	{
-		for (int i = 0; i < log.console_sink_count; i++)
+		for (int i = 0; i < logger.console_sink_count; i++)
 		{
-			struct sink* sink = &log.console_sinks[i];
+			struct sink* sink = &logger.console_sinks[i];
 
 			if (event->level >= sink->level)
 			{
@@ -89,9 +89,9 @@ static void on_log(struct logger_event* event)
 			}
 		}
 
-		for (int j = 0; j < log.file_sink_count; j++)
+		for (int j = 0; j < logger.file_sink_count; j++)
 		{
-			struct sink* sink = &log.file_sinks[j];
+			struct sink* sink = &logger.file_sinks[j];
 
 			if (event->level >= sink->level)
 			{
@@ -104,13 +104,13 @@ static void on_log(struct logger_event* event)
 
 static void on_log_thread_safe(struct logger_event* event)
 {
-	if (event->level >= log.level)
+	if (event->level >= logger.level)
 	{
-		for (int i = 0; i < log.console_sink_count; i++)
+		for (int i = 0; i < logger.console_sink_count; i++)
 		{
-			log.lock_function(log.console_sinks[i].data);
+			logger.lock_function(logger.console_sinks[i].data);
 
-			struct sink* sink = &log.console_sinks[i];
+			struct sink* sink = &logger.console_sinks[i];
 
 			if (event->level >= sink->level)
 			{
@@ -118,14 +118,14 @@ static void on_log_thread_safe(struct logger_event* event)
 				on_log_to_console(event);
 			}
 
-			log.unlock_function(log.console_sinks[i].data);
+			logger.unlock_function(logger.console_sinks[i].data);
 		}
 
-		for (int j = 0; j < log.file_sink_count; j++)
+		for (int j = 0; j < logger.file_sink_count; j++)
 		{
-			log.lock_function(log.file_sinks[j].data);
+			logger.lock_function(logger.file_sinks[j].data);
 
-			struct sink* sink = &log.file_sinks[j];
+			struct sink* sink = &logger.file_sinks[j];
 
 			if (event->level >= sink->level)
 			{
@@ -133,29 +133,29 @@ static void on_log_thread_safe(struct logger_event* event)
 				on_log_to_file(event);
 			}
 
-			log.unlock_function(log.file_sinks[j].data);
+			logger.unlock_function(logger.file_sinks[j].data);
 		}
 	}
 }
 
 void logger_init(enum log_levels level)
 {
-	log.level = level;
-	log.log_function = on_log;
-	log.lock_function = NULL;
-	log.unlock_function = NULL;
-	log.console_sink_count = 0;
-	log.file_sink_count = 0;
+	logger.level = level;
+	logger.log_function = on_log;
+	logger.lock_function = NULL;
+	logger.unlock_function = NULL;
+	logger.console_sink_count = 0;
+	logger.file_sink_count = 0;
 }
 
 void logger_init_threaded(enum log_levels level, logger_lock_fn lock_fn, logger_unlock_fn unlock_fn)
 {
-	log.level = level;
-	log.log_function = on_log_thread_safe;
-	log.lock_function = lock_fn;
-	log.unlock_function = unlock_fn;
-	log.console_sink_count = 0;
-	log.file_sink_count = 0;
+	logger.level = level;
+	logger.log_function = on_log_thread_safe;
+	logger.lock_function = lock_fn;
+	logger.unlock_function = unlock_fn;
+	logger.console_sink_count = 0;
+	logger.file_sink_count = 0;
 }
 
 enum error_codes logger_add_file_sink(FILE* file, enum log_levels level)
@@ -163,12 +163,12 @@ enum error_codes logger_add_file_sink(FILE* file, enum log_levels level)
 	if (!file)
 		return ERROR_FILE_IS_NULL;
 
-	if (log.file_sink_count == MAX_LOG_SINKS)
+	if (logger.file_sink_count == MAX_LOG_SINKS)
 		return ERROR_TO_MANY_SINKS;
 
-	log.file_sinks[log.file_sink_count].level = level;
-	log.file_sinks[log.file_sink_count].data = file;
-	log.file_sink_count++;
+	logger.file_sinks[logger.file_sink_count].level = level;
+	logger.file_sinks[logger.file_sink_count].data = file;
+	logger.file_sink_count++;
 
 	return SUCCESS;
 }
@@ -178,12 +178,12 @@ enum error_codes logger_add_console_sink(void* data, enum log_levels level)
 	if (!data)
 		return ERROR_PTR_IS_NULL;
 
-	if (log.file_sink_count == MAX_LOG_SINKS)
+	if (logger.file_sink_count == MAX_LOG_SINKS)
 		return ERROR_TO_MANY_SINKS;
 
-	log.console_sinks[log.console_sink_count].level = level;
-	log.console_sinks[log.console_sink_count].data = data;
-	log.console_sink_count++;
+	logger.console_sinks[logger.console_sink_count].level = level;
+	logger.console_sinks[logger.console_sink_count].data = data;
+	logger.console_sink_count++;
 
 	return SUCCESS;
 }
@@ -207,6 +207,6 @@ void logger_log(enum log_levels level, const char* file, int32_t line, const cha
 #endif // WIN32
 
 	va_start(event.arguments, fmt);
-	log.log_function(&event);
+	logger.log_function(&event);
 	va_end(event.arguments);
 }
